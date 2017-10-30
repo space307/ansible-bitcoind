@@ -1,0 +1,87 @@
+---
+
+- name: Check for RPC user
+  fail:
+    msg: "Server mode is set and bitcoind_rpcuser has not been defined"
+  when: bitcoind_server == 1 and bitcoind_rpcuser|default(False) == False
+
+- name: Check for RPC password
+  fail:
+    msg: "Server mode is set and bitcoind_rpcpassword has not been defined"
+  when: bitcoind_server == 1 and bitcoind_rpcpassword|default(False) == False
+
+- debug: msg="data directory is {{ bitcoind_datadir }}"
+
+- name: Add bitcoind group
+  group: 
+    name: bitcoind 
+    state: present
+
+- name: Add bitcoind user
+  user:
+    name: bitcoind
+    group: bitcoind
+    createhome: yes
+    system: yes
+    state: present
+
+- name: Adds bitcoind repository
+  apt_repository:
+    repo: 'ppa:bitcoin/bitcoin'
+    state: present
+    update_cache: yes
+  tags: always
+
+- name: Install bitcoind
+  apt:
+    name: bitcoind
+    state: latest
+  notify: Restart bitcoind
+
+- name: Ensure bitcoind_datadir exists
+  file:
+    path: "{{ bitcoind_datadir }}"
+    state: directory
+    owner: bitcoind
+    group: bitcoind
+    mode: 0775
+
+- name: Create log dir
+  file:
+    path: /var/log/bitcoind
+    state: directory
+    owner: bitcoind 
+    group: bitcoind 
+    mode: 0755 
+
+- name: Add supervisor
+  apt:
+    name: supervisor
+    state: latest
+
+- name: Add supervisor
+  apt:
+    name: supervisor
+    state: latest
+
+- name: Ensure supervisor is enabled and started
+  service:
+    name: supervisor
+    state: started
+    enabled: yes
+
+- name: Copy supervisor configuration
+  template:
+    src=supervisor-bitcoind.conf.j2
+    dest=/etc/supervisor/conf.d/bitcoind.conf
+    owner=root group=root mode=0644
+  notify:
+    - Restart bitcoind
+
+- name: Configure bitcoind
+  template:
+    src=bitcoin.conf.j2
+    dest={{ bitcoind_datadir }}/bitcoin.conf
+    owner=bitcoind
+    group=bitcoind
+    mode=0600

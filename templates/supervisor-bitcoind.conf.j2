@@ -1,0 +1,8 @@
+[program:bitcoind]
+command=/usr/bin/bitcoind -datadir={{ bitcoind_datadir }} -daemon=0
+autostart=true
+autorestart=true
+startretries=5
+stderr_logfile=/var/log/bitcoind/bitcoind.err.log
+stdout_logfile=/var/log/bitcoind/bitcoind.out.log
+user=bitcoind

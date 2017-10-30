@@ -1,0 +1,5 @@
+---
+- name: Restart bitcoind
+  supervisorctl:
+    name: bitcoind
+    state: restarted
