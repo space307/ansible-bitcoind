@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: pilotuser
+  description: Install and configure a bitcoind service
+  company: Space307
+  license: MIT
+  min_ansible_version: 2.4
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+  categories:
+    - development
+dependencies: []
