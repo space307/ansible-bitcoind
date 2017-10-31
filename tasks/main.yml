@@ -10,7 +10,8 @@
     msg: "Server mode is set and bitcoind_rpcpassword has not been defined"
   when: bitcoind_server == 1 and bitcoind_rpcpassword|default(False) == False
 
-- debug: msg="data directory is {{ bitcoind_datadir }}"
+- debug: 
+    msg: "data directory is {{ bitcoind_datadir }}"
 
 - name: Add bitcoind group
   group: 
@@ -32,37 +33,24 @@
     update_cache: yes
   tags: always
 
-- name: Install bitcoind
+- name: Ensure installed bitcoind and supervisor
   apt:
-    name: bitcoind
+    name: "{{ item }}"
     state: latest
-  notify: Restart bitcoind
+  with_items:
+    - bitcoind
+    - supervisor
 
-- name: Ensure bitcoind_datadir exists
+- name: Ensure bitcoind_datadir and log dir exists
   file:
-    path: "{{ bitcoind_datadir }}"
+    path: "{{ item }}"
     state: directory
     owner: bitcoind
     group: bitcoind
     mode: 0775
-
-- name: Create log dir
-  file:
-    path: /var/log/bitcoind
-    state: directory
-    owner: bitcoind 
-    group: bitcoind 
-    mode: 0755 
-
-- name: Add supervisor
-  apt:
-    name: supervisor
-    state: latest
-
-- name: Add supervisor
-  apt:
-    name: supervisor
-    state: latest
+  with_items:
+    - "{{ bitcoind_datadir }}"
+    - /var/log/bitcoind
 
 - name: Ensure supervisor is enabled and started
   service:
@@ -72,16 +60,18 @@
 
 - name: Copy supervisor configuration
   template:
-    src=supervisor-bitcoind.conf.j2
-    dest=/etc/supervisor/conf.d/bitcoind.conf
-    owner=root group=root mode=0644
-  notify:
-    - Restart bitcoind
+    src: supervisor-bitcoind.conf.j2
+    dest: /etc/supervisor/conf.d/bitcoind.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart bitcoind
 
 - name: Configure bitcoind
   template:
-    src=bitcoin.conf.j2
-    dest={{ bitcoind_datadir }}/bitcoin.conf
-    owner=bitcoind
-    group=bitcoind
-    mode=0600
+    src: bitcoin.conf.j2
+    dest: "{{ bitcoind_datadir }}/bitcoin.conf"
+    owner: bitcoind
+    group: bitcoind
+    mode: 0600
+  notify: Restart bitcoind
