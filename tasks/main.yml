@@ -1,16 +1,6 @@
 ---
 
-- name: Check for RPC user
-  fail:
-    msg: "Server mode is set and bitcoind_rpcuser has not been defined"
-  when: bitcoind_server == 1 and bitcoind_rpcuser|default(False) == False
-
-- name: Check for RPC password
-  fail:
-    msg: "Server mode is set and bitcoind_rpcpassword has not been defined"
-  when: bitcoind_server == 1 and bitcoind_rpcpassword|default(False) == False
-
-- debug: 
+- debug:
     msg: "data directory is {{ bitcoind_datadir }}"
 
 - name: Add bitcoind group
@@ -65,7 +55,6 @@
     owner: root
     group: root
     mode: 0644
-  notify: Restart bitcoind
 
 - name: Configure bitcoind
   template:
@@ -74,4 +63,8 @@
     owner: bitcoind
     group: bitcoind
     mode: 0600
-  notify: Restart bitcoind
+
+- name: Supervisor reread bitcoind
+  supervisorctl:
+    name: bitcoind
+    state: present

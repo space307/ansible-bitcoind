@@ -16,3 +16,5 @@ bitcoind_datadir: /home/bitcoind/.bitcoin
 bitcoind_debug: False
 bitcoind_rpcworkqueue: 200
 bitcoind_maxmempool: 300
+bitcoind_rpcuser: test
+bitcoind_rpcpassword: test
